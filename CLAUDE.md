@@ -84,7 +84,9 @@ pentatonic the only difference is the blue note; verify.mjs asserts that.
 rub (11, 7). `blueResolution()` gives the blue note's half-step neighbours that
 are in the scale AND in the chord — A minor: E♭ up to E over A7, down to D over
 D7, either over E7. Major blues over IV7: the ♭3 **is** the ♭7, so "sit on it".
-"Play the changes" loops the form and the board follows the chords.
+"Play the changes" loops the form and the board follows the chords. Tempo is
+`settings.bpm` (50–160, default 100 = medium shuffle), read per bar through a
+ref so a change mid-loop lands on the next bar.
 
 ## Practice
 Cards are `scale|shape|drill` — minor and major keep separate records. Ten
@@ -121,6 +123,8 @@ blue-note and comparison drills.
 **Card borders are longhands** (`borderWidth/Style/Color`), never the `border`
 shorthand: overriding `borderColor` on a reused element made React wipe the
 shorthand's colour, and the session prompt card rendered with a white border.
+The colour is `#2a2840` (the button border tone) — Zak asked for a touch lighter
+than the old `#1a1928`. Altered Trainer uses the same.
 
 ## Audio
 Copied from Altered Trainer: two-layer iOS silent-switch bypass, shared bus +

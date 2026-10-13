@@ -443,7 +443,7 @@ check('every persisted value survives a ProgressBackup round trip', () => {
   const roundTrip = raw => { let v; try { v = JSON.parse(raw); } catch { v = raw; } return JSON.stringify(v); };
   for (const [key, raw] of [
     ['bs_root', '9'], ['bs_scale', JSON.stringify('min')], ['bs_label', JSON.stringify('degrees')],
-    ['bs_settings', JSON.stringify({ sessionN: 12 })], ['bs_shape', JSON.stringify({ min: 'P1', maj: 'P3' })],
+    ['bs_settings', JSON.stringify({ sessionN: 12, bpm: 100 })], ['bs_shape', JSON.stringify({ min: 'P1', maj: 'P3' })],
     ['bs_focus', JSON.stringify({ min: { shape: 'P2', since: null } })],
     ['bs_srs', JSON.stringify({ 'min|P1|root': { ef: 2.5, interval: 6, reps: 2, nextDue: '2026-09-01' } })],
   ]) eq(roundTrip(raw), raw, `${key} round trip`);

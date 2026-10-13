@@ -25,7 +25,7 @@ const ACC = BLUE;   // the app accent IS the blue-note colour
 // and when React reuses one element across two styles (the idle screen's Next
 // up card becoming a session's prompt card) removing `borderColor` also wipes
 // the colour the shorthand set, and the border falls back to white.
-const card = { background: '#13121f', borderWidth: 1, borderStyle: 'solid', borderColor: '#1a1928', borderRadius: 12, padding: '12px 13px', marginBottom: 12 };
+const card = { background: '#13121f', borderWidth: 1, borderStyle: 'solid', borderColor: '#2a2840', borderRadius: 12, padding: '12px 13px', marginBottom: 12 };
 const hd = { fontSize: 11, color: '#888', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 8 };
 const primary = { width: '100%', background: ACC, color: '#0b0b2a', border: 'none', borderRadius: 10, padding: '14px', fontSize: 15, fontWeight: 800, cursor: 'pointer', minHeight: 48, touchAction: 'manipulation' };
 const ghost = { width: '100%', background: 'transparent', color: '#aaa', border: '1px solid #2a2840', borderRadius: 9, padding: '10px', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', minHeight: 44, touchAction: 'manipulation', marginTop: 8 };
@@ -143,7 +143,7 @@ function PositionsTab({ root, scale, labelMode, shapeId, onShapeId, focusId, onF
         {!neck && <span style={{ color: '#888', fontWeight: 600, fontSize: 11 }}>starts on {pretty(cur.start)} · frets {cur.lo}–{cur.hi}</span>}
       </div>
 
-      <div style={{ background: '#13121f', border: '1px solid #1a1928', borderRadius: 12, padding: '8px 4px', overflowX: neck ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
+      <div style={{ background: '#13121f', borderWidth: 1, borderStyle: 'solid', borderColor: '#2a2840', borderRadius: 12, padding: '8px 4px', overflowX: neck ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch' }}>
         <Fretboard cells={cells} root={root} labelMode={labelMode} compare={cmpData}
           win={neck ? { lo: 0, hi: 15 } : { lo: Math.max(0, cur.lo - 1), hi: cur.hi + 1 }} scroll={neck} />
       </div>
@@ -192,12 +192,19 @@ function PositionsTab({ root, scale, labelMode, shapeId, onShapeId, focusId, onF
 // it is AGAINST THE CHORD: a chord tone to land on, a colour tone, or a rub to
 // move through. The blue note keeps its diamond, and teal rings show where it
 // resolves — which changes chord to chord, and that is the lesson.
-const BPM = 84;
+// Tempo. 100 is a medium shuffle — the most common blues feel; slow blues sits
+// around 60-70 and up-tempo shuffles 120+. A change while it plays takes effect
+// from the next bar: the current one is already scheduled.
+export const BPM_MIN = 50, BPM_MAX = 160, BPM_DEFAULT = 100;
+const clampBpm = n => Math.min(BPM_MAX, Math.max(BPM_MIN, Math.round(Number(n) || BPM_DEFAULT)));
+const tempoWord = b => b < 76 ? 'slow blues' : b < 116 ? 'medium shuffle' : 'up-tempo';
 const ROLE_WORD = { chord: 'Land on', colour: 'Colour', rub: 'Rub — pass through' };
-function TwelveBarTab({ root, scale, labelMode, shapeId, onShapeId }) {
+function TwelveBarTab({ root, scale, labelMode, shapeId, onShapeId, bpm, onBpm }) {
   const [chord, setChord] = useState('I');
   const [bar, setBar] = useState(-1);          // the bar playing, -1 = stopped
   const timer = useRef(null);
+  const bpmRef = useRef(bpm);
+  useEffect(() => { bpmRef.current = bpm; }, [bpm]);
   const { kind, list, idx, cur } = useShapeList(scale, root, shapeId);
   const setKind = k => onShapeId((k === 'join' ? 'J' : 'P') + cur.num);
   const S = SCALES[scale];
@@ -208,9 +215,11 @@ function TwelveBarTab({ root, scale, labelMode, shapeId, onShapeId }) {
   const play = () => {
     if (timer.current) { stop(); return; }
     unlockAudio();
-    const ctx = getCtx(), barDur = 4 * 60 / BPM;
+    const ctx = getCtx();
     let i = 0, t0 = ctx.currentTime + 0.1;
     const tick = () => {
+      // Read per bar, so moving the tempo while it plays lands on the next bar.
+      const barDur = 4 * 60 / bpmRef.current;
       const ch = BARS[i % 12], v = dom7Voicing(pc(root + CHORD_OFFSET[ch]));
       strumAt(ctx, v, t0); strumAt(ctx, v, t0 + barDur / 2, 0.2);
       bumpIdle(ctx, t0 + barDur + 1.5);
@@ -260,7 +269,23 @@ function TwelveBarTab({ root, scale, labelMode, shapeId, onShapeId }) {
             </button>;
           })}
         </div>
-        <div style={{ fontSize: 10.5, color: '#666', marginTop: 7, lineHeight: 1.5 }}>Tap a bar to hear its chord. While it plays, the neck below follows the changes.</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+          <button onClick={() => onBpm(clampBpm(bpm - 5))} disabled={bpm <= BPM_MIN} aria-label="Slower"
+            style={{ ...navBtn, padding: 0, minWidth: 44, fontSize: 18, opacity: bpm <= BPM_MIN ? 0.4 : 1 }}>{'\u2212'}</button>
+          <input type="range" min={BPM_MIN} max={BPM_MAX} step={1} value={bpm} aria-label="Tempo in beats per minute"
+            onChange={e => onBpm(clampBpm(e.target.value))}
+            style={{ flex: 1, minWidth: 0, accentColor: ACC, height: 32, touchAction: 'manipulation' }} />
+          <button onClick={() => onBpm(clampBpm(bpm + 5))} disabled={bpm >= BPM_MAX} aria-label="Faster"
+            style={{ ...navBtn, padding: 0, minWidth: 44, fontSize: 18, opacity: bpm >= BPM_MAX ? 0.4 : 1 }}>+</button>
+          <div style={{ minWidth: 62, textAlign: 'right', lineHeight: 1.2 }}>
+            <div style={{ fontSize: 15, fontWeight: 900, fontFamily: 'var(--font-mono)', color: '#fff' }}>{bpm}</div>
+            <div style={{ fontSize: 9.5, color: '#888', letterSpacing: '.4px' }}>BPM</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 10.5, color: '#666', marginTop: 5, lineHeight: 1.5 }}>
+          <span>{tempoWord(bpm)}{bpm !== BPM_DEFAULT && <> · <button onClick={() => onBpm(BPM_DEFAULT)} style={{ background: 'none', border: 'none', color: ACC, fontSize: 10.5, fontWeight: 700, padding: '6px 2px', cursor: 'pointer' }}>reset to {BPM_DEFAULT}</button></>}</span>
+        </div>
+        <div style={{ fontSize: 10.5, color: '#666', marginTop: 4, lineHeight: 1.5 }}>Tap a bar to hear its chord. While it plays, the neck below follows the changes.</div>
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
@@ -271,7 +296,7 @@ function TwelveBarTab({ root, scale, labelMode, shapeId, onShapeId }) {
         <div style={{ fontSize: 14, fontWeight: 900 }}>{scaleTitle(root, scale)} <span style={{ color: '#777', fontWeight: 600 }}>over</span> <span style={{ color: ACC }}>{cname}</span></div>
         <span style={{ color: '#888', fontSize: 11 }}>{cur.name}</span>
       </div>
-      <div style={{ background: '#13121f', border: '1px solid #1a1928', borderRadius: 12, padding: '8px 4px' }}>
+      <div style={{ background: '#13121f', borderWidth: 1, borderStyle: 'solid', borderColor: '#2a2840', borderRadius: 12, padding: '8px 4px' }}>
         <Fretboard cells={cur.cells} root={root} labelMode={labelMode} roles={roles} targets={targets}
           win={{ lo: Math.max(0, cur.lo - 1), hi: cur.hi + 1 }} />
       </div>
@@ -446,7 +471,7 @@ function PracticeTab({ root, scale, labelMode, settings, srs, onGrade, focusId, 
 
         {/* Full-bleed: the tab's side padding is what would drop an 8-fret
             cell under 44px. Same measurement as Altered Trainer. */}
-        <div style={{ background: '#13121f', border: '1px solid #1a1928', borderRadius: 12, padding: '8px 0', margin: '0 -12px' }}>
+        <div style={{ background: '#13121f', borderWidth: 1, borderStyle: 'solid', borderColor: '#2a2840', borderRadius: 12, padding: '8px 0', margin: '0 -12px' }}>
           <Fretboard cells={spec.shown} root={it.root} labelMode={labelMode} mono rootRing={ring}
             win={spec.win} rowH={36} marks={marks} selected={answer ? null : picked} pickStyle={morph ? 'morph' : 'mark'}
             onTapCell={answer ? undefined : toggle} />
@@ -518,7 +543,7 @@ function PracticeTab({ root, scale, labelMode, settings, srs, onGrade, focusId, 
 
   return (
     <div style={{ padding: '14px 12px' }}>
-      <div style={{ ...card, borderColor: plan.kind === 'due' ? ACC + '77' : '#1a1928' }}>
+      <div style={{ ...card, borderColor: plan.kind === 'due' ? ACC + '77' : '#2a2840' }}>
         <div style={hd}>Next up · {SCALES[scale].name.toLowerCase()}</div>
         <div style={{ fontSize: 15.5, fontWeight: 800, color: '#fff', lineHeight: 1.4 }}>{NEXT.title}</div>
         <div style={{ fontSize: 11.5, color: '#8a8a9a', lineHeight: 1.6, marginTop: 5, marginBottom: 11 }}>{NEXT.why}</div>
@@ -697,7 +722,9 @@ Pick a chord and every note in the box is coloured by what it is AGAINST THAT CH
 
 The teal rings show where the blue note resolves over that chord: always a half step to a chord tone. In A minor blues, the E♭ goes UP to E over A7 (the 5th), DOWN to D over D7 (the root), and either way over E7. In major blues over the IV7 the blue note is itself the ♭7 — a chord tone — so you can sit on it.
 
-"Play the changes" loops the 12 bars and the neck follows the chords as they go by. Play along.` },
+"Play the changes" loops the 12 bars and the neck follows the chords as they go by. Play along.
+
+Set the tempo with \u2212 / + (5 BPM a tap) or the slider, anywhere from 50 to 160. It starts at 100, a medium shuffle — the most common blues feel. Slow blues sits around 60\u201370. A change while it plays takes effect from the next bar.` },
     { icon: '🎯', title: 'How to practise', color: ACC, body:
 `Practice names ONE shape as your focus. Five boxes learned one at a time beats five half-learned at once; the joins come after.
 
@@ -757,7 +784,7 @@ Reset practice progress erases every drill result for both scales. It asks twice
         {S.map((sec, i) => {
           const isO = open === i;
           return (
-            <div key={i} style={{ background: '#13121f', borderRadius: 10, border: `1px solid ${isO ? sec.color + '55' : '#1a1928'}`, overflow: 'hidden' }}>
+            <div key={i} style={{ background: '#13121f', borderRadius: 10, border: `1px solid ${isO ? sec.color + '55' : '#2a2840'}`, overflow: 'hidden' }}>
               <button onClick={() => setOpen(isO ? null : i)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 13px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', minHeight: 46, touchAction: 'manipulation' }}>
                 <span style={{ fontSize: 16, color: sec.color, width: 20, textAlign: 'center' }}>{sec.icon}</span>
                 <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: '#fff' }}>{sec.title}</span>
@@ -882,7 +909,7 @@ const jstore = {
   get(k, dflt) { try { const v = localStorage.getItem(k); return v === null ? dflt : JSON.parse(v); } catch (e) { return dflt; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
 };
-const DEFAULT_SETTINGS = { sessionN: 12, keyMode: 'random', drills: DEFAULT_DRILLS };
+const DEFAULT_SETTINGS = { sessionN: 12, keyMode: 'random', drills: DEFAULT_DRILLS, bpm: BPM_DEFAULT };
 const validShape = id => SHAPE_IDS.includes(id);
 function loadRoot() { const n = Number(jstore.get('bs_root', 9)); return Number.isInteger(n) && n >= 0 && n < 12 ? n : 9; }
 function loadPerScale(key, ok, dflt) {
@@ -898,6 +925,7 @@ export default function App() {
     const s = { ...DEFAULT_SETTINGS, ...(jstore.get('bs_settings', {}) || {}) };
     s.drills = (Array.isArray(s.drills) ? s.drills : DEFAULT_DRILLS).filter(d => DRILLS.includes(d));
     if (!s.drills.length) s.drills = DEFAULT_DRILLS;
+    s.bpm = clampBpm(s.bpm);
     return s;
   });
   // What you are browsing (bs_shape) and what the app recommends (bs_focus) are
@@ -1002,7 +1030,7 @@ export default function App() {
       <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch', overscrollBehaviorY: 'none' }}>
         <div style={{ maxWidth: CW, margin: '0 auto', paddingBottom: 'max(80px,env(safe-area-inset-bottom))' }}>
           {tab === 'positions' && <PositionsTab root={root} scale={scale} labelMode={labelMode} shapeId={shapeId} onShapeId={onShapeId} focusId={focusId} onFocus={moveFocus} onPractise={() => setTab('practice')} />}
-          {tab === 'twelve' && <TwelveBarTab root={root} scale={scale} labelMode={labelMode} shapeId={shapeId} onShapeId={onShapeId} />}
+          {tab === 'twelve' && <TwelveBarTab root={root} scale={scale} labelMode={labelMode} shapeId={shapeId} onShapeId={onShapeId} bpm={settings.bpm} onBpm={b => setSettings(s => ({ ...s, bpm: b }))} />}
           {tab === 'practice' && <PracticeTab root={root} scale={scale} labelMode={labelMode} settings={settings} srs={srs} onGrade={grade} focusId={focusId} onFocus={moveFocus} onSession={setDrilling} />}
           {tab === 'guide' && <GuideTab />}
           {tab === 'settings' && <SettingsTab scale={scale} settings={settings} onChange={setSettings} onResetProgress={resetProgress} />}
