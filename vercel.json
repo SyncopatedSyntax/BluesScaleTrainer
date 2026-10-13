@@ -1,5 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "blues-scale-trainer.vercel.app" }],
+      "destination": "https://fretworks.vercel.app/blues",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/blues/(.*)", "destination": "/$1" },
     { "source": "/blues", "destination": "/" }
