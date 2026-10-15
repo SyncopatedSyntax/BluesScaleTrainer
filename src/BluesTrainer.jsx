@@ -998,7 +998,8 @@ export default function App() {
 
   const TABS = [{ id: 'positions', label: 'Positions', icon: '🎸' }, { id: 'twelve', label: '12-bar', icon: '🎼' }, { id: 'practice', label: 'Practice', icon: '🎯' }, { id: 'guide', label: 'Guide', icon: '📖' }, { id: 'settings', label: 'Settings', icon: '⚙️' }];
   const CW = 600;
-  const rel = scale === 'min' ? pc(root + 3) : pc(root - 3);
+  // The relative key, spelled from this key (E major's relative is C♯ minor, not D♭).
+  const relName = scale === 'min' ? spell(root, 3) : spell(root, 9);
   const shapeId = shapeSel[scale], focusId = focus[scale].shape;
 
   return (
@@ -1018,7 +1019,7 @@ export default function App() {
             <div style={{ display: 'flex', gap: 5 }}>
               {SCALE_IDS.map(id => <button key={id} onClick={() => setScale(id)} style={{ padding: '5px 11px', borderRadius: 14, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', minHeight: 32, border: `1px solid ${scale === id ? ACC : '#2a2840'}`, background: scale === id ? ACC : 'transparent', color: scale === id ? '#0b0b2a' : '#999', touchAction: 'manipulation' }}>{SCALES[id].short} blues</button>)}
             </div>
-            <div style={{ fontSize: 10.5, color: '#777', textAlign: 'right', lineHeight: 1.3 }}>same notes as<br /><span style={{ color: '#aaa', fontWeight: 700 }}>{KEY_NAMES[rel]} {scale === 'min' ? 'major' : 'minor'} blues</span></div>
+            <div style={{ fontSize: 10.5, color: '#777', textAlign: 'right', lineHeight: 1.3 }}>same notes as<br /><span style={{ color: '#aaa', fontWeight: 700 }}>{relName} {scale === 'min' ? 'major' : 'minor'} blues</span></div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12,1fr)', gap: 3 }}>
             {KEY_NAMES.map((n, i) => <button key={i} onClick={() => setRoot(i)}
