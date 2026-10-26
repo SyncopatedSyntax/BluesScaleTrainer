@@ -11,10 +11,12 @@ import { DRILLS, KEY_DRILLS, SHAPE_IDS, drillAppliesTo } from './theory.js';
 // SM-2 copied verbatim from triads-trainer/src/TriadTrainer.jsx:32-46, which is
 // byte-identical to Diatonic's and Altered's. Do not re-derive it; a fix in one
 // should be carried to all of them.
-// Days are UTC calendar days (todayStr), so the arithmetic is done in UTC too.
-// Local-time arithmetic put "tomorrow" on today anywhere east of Greenwich,
-// and lost a day whenever a gap crossed a clock change.
-export const todayStr = () => new Date().toISOString().slice(0, 10);
+// A day is the phone's own calendar day: todayStr() reads the LOCAL date, so a
+// new day starts at the user's midnight. (It used to be the UTC date, which
+// rolled over at 5pm in California and 8am in Singapore — last night's practice
+// read as "today".) The day strings are then plain calendar dates, so the
+// arithmetic on them is done in UTC, where no clock change can shift it.
+export const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 export const addDays = (s, n) => { const d = new Date(s + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
 export const dayDiff = (a, b) => Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000);
 export function updateSRS(card, correct) {
