@@ -1,4 +1,4 @@
-import { OPEN_MIDI, STR_LABELS, pc, pretty, noteName, ckey } from './theory.js';
+import { OPEN_MIDI, STR_LABELS, pretty, noteName, ckey } from './theory.js';
 
 // ── Colours ──────────────────────────────────────────────────────────────
 // DC is the toolbox's shared degree palette (Altered/Melodic Minor), plus the

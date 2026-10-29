@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AppHeader, TabBar, ProgressBackup } from '@fretworks/design';
 import {
-  OPEN_MIDI, pc, midiAt, ckey, unkey, pretty, IV_LABEL, KEY_NAMES, SCALES, SCALE_IDS, COMPARE, COMPARE_IDS,
+  pc, midiAt, ckey, unkey, pretty, IV_LABEL, KEY_NAMES, SCALES, SCALE_IDS, COMPARE, COMPARE_IDS,
   spell, noteName, getShapes, shapeById, shapeName, fullNeck, rootSpan, compareIn, compareDegrees,
   BARS, CHORD_OFFSET, chordName, roleOver, blueResolution, DRILLS, BLANK, DEFAULT_DRILLS, MORPH, DRILL_FAMILY,
-  SHAPE_IDS, BOX_IDS, JOIN_IDS, drillSpec, drillAppliesTo,
+  SHAPE_IDS, BOX_IDS, drillSpec, drillAppliesTo,
 } from './theory.js';
 import {
   todayStr, updateSRS, isLearned, ri, cardId, buildCards, shapeProgress, drillProgress, weakestDrills,
