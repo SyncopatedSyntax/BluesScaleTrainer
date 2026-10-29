@@ -965,31 +965,17 @@ export default function App() {
   }, [scale]);
   const onShapeId = useCallback(id => setShapeSel(prev => ({ ...prev, [scale]: id })), [scale]);
 
-  // PWA bits, as in Altered Trainer: icon, theme, the shell's single manifest,
-  // and the iOS standalone scroll lock.
+  // Theme and the iOS standalone scroll lock. The icon, title and manifest
+  // are static, in index.html and public/.
   useEffect(() => {
     const style = document.createElement('style');
     style.textContent = `*{-webkit-tap-highlight-color:transparent}body{margin:0}`;
     document.head.appendChild(style);
-    const makeIcon = size => {
-      const c = document.createElement('canvas'); c.width = c.height = size;
-      const x = c.getContext('2d'), u = size / 512;
-      x.fillStyle = '#0f0e17'; x.beginPath();
-      const rr = 96 * u; x.moveTo(rr, 0); x.arcTo(size, 0, size, size, rr); x.arcTo(size, size, 0, size, rr); x.arcTo(0, size, 0, 0, rr); x.arcTo(0, 0, size, 0, rr); x.fill();
-      [['#ff4757', 120], ['#ff9f43', 190], ['#74b9ff', 260], ['#778ca3', 400]].forEach(([col, cx]) => { x.beginPath(); x.arc(cx * u, 300 * u, 30 * u, 0, 7); x.fillStyle = col; x.fill(); });
-      x.fillStyle = ACC; x.beginPath(); x.moveTo(330 * u, 250 * u); x.lineTo(378 * u, 300 * u); x.lineTo(330 * u, 350 * u); x.lineTo(282 * u, 300 * u); x.closePath(); x.fill();
-      x.fillStyle = '#fff'; x.font = `bold ${76 * u}px sans-serif`; x.textAlign = 'center'; x.fillText('blues', size / 2, 180 * u);
-      return c.toDataURL('image/png');
-    };
-    const setLink = (rel, sizes, href) => { let l = document.querySelector(`link[rel="${rel}"]${sizes ? `[sizes="${sizes}"]` : ''}`); if (!l) { l = document.createElement('link'); l.rel = rel; if (sizes) l.sizes = sizes; document.head.appendChild(l); } l.href = href; };
-    setLink('apple-touch-icon', '180x180', makeIcon(180)); setLink('icon', '512x512', makeIcon(512));
     const setMeta = (n, c) => { let m = document.querySelector(`meta[name="${n}"]`); if (!m) { m = document.createElement('meta'); m.name = n; document.head.appendChild(m); } m.content = c; };
     setMeta('theme-color', '#0f0e17');
     setMeta('viewport', 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover');
     setMeta('apple-mobile-web-app-capable', 'yes');
     setMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
-    setMeta('apple-mobile-web-app-title', 'Fretworks');
-    let ml = document.querySelector('link[rel="manifest"]'); if (!ml) { ml = document.createElement('link'); ml.rel = 'manifest'; document.head.appendChild(ml); } ml.href = '/manifest.webmanifest';
     window.scrollTo(0, 0);
     const lock = () => { if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0); };
     window.addEventListener('scroll', lock, { passive: true });

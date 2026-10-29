@@ -1,0 +1,29 @@
+{
+  "id": "/blues/",
+  "name": "Blues Scale Trainer",
+  "short_name": "Blues",
+  "description": "Learn the blues scale in five boxes and the joins between them, see it against major, minor and both pentatonics, and hear what its one blue note does over a 12-bar.",
+  "start_url": "/blues/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f0e17",
+  "theme_color": "#0f0e17",
+  "icons": [
+    {
+      "src": "/blues/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/blues/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/blues/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
